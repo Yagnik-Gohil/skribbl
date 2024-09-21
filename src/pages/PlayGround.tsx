@@ -30,7 +30,10 @@ const PlayGround = () => {
     <div className="h-dvh w-dvw flex items-center justify-center text-[#000]">
       <div className="container flex flex-col h-[80%] gap-1">
         <div className="flex justify-between items-center bg-[#FFF] rounded-lg px-3 py-2">
-          <p><span className="text-3xl">⏱️:</span> <span className="text-3xl font-bold">60</span></p>
+          <p>
+            <span className="text-3xl">⏱️:</span>{" "}
+            <span className="text-3xl font-bold">60</span>
+          </p>
           <p>Round 1 of 3</p>
           <div className="text-center">
             <span className="text-xs">Guess This</span>
@@ -40,16 +43,19 @@ const PlayGround = () => {
             </div>
           </div>
           <div className="flex gap-3">
-            <p className="bg-[#16a34a] w-10 h-10 rounded-full flex items-center justify-center select-none">👍</p>
-            <p className="bg-theme-red w-10 h-10 rounded-full flex items-center justify-center select-none">👎</p>
+            <Button
+              name="👍"
+              className="bg-[#16a34a] w-10 h-10 rounded-full flex items-center justify-center select-none"
+            />
+            <Button
+              name="👎"
+              className="bg-theme-red w-10 h-10 rounded-full flex items-center justify-center select-none"
+            />
           </div>
           <p>
             Room ID: <span className="font-bold">{member.room}</span>
           </p>
-          <Button
-            name="⚙️"
-            className="text-3xl"
-          ></Button>
+          <Button name="⚙️" className="text-3xl select-none"></Button>
         </div>
         <div className="flex justify-between h-full border border-[#000] bg-[#FFF] rounded-lg">
           <div className="w-[20%] flex flex-col gap-2 p-2 overflow-y-scroll">

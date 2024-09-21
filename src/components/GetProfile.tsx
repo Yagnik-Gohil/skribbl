@@ -1,8 +1,13 @@
 import React from "react";
-import { RandomAvatar } from "react-random-avatar";
 
-const GetProfile = ({ seed, size }: { seed: string; size: number }) => {
-  return <RandomAvatar seed={seed} size={size} />;
+const GetProfile = ({
+  emoji,
+  className,
+}: {
+  emoji: string;
+  className: string;
+}) => {
+  return <div className={className + " select-none"}>{emoji}</div>;
 };
 
 export default GetProfile;

@@ -4,14 +4,14 @@ import GetProfile from "./GetProfile";
 const Member = ({
   member,
 }: {
-  member: { name: string; admin: boolean; score: number };
+  member: { name: string; admin: boolean; score: number, emoji: string };
 }) => {
   return (
     <div
       className={"flex items-center border rounded p-1 justify-between pr-4 bg-[#FFF]"}
     >
       <div className="flex items-center gap-1">
-        <GetProfile seed={member.name} size={5} />
+        <GetProfile emoji={member.emoji} className={"text-5xl p-1"} />
         <p>
           {member.name} {member.admin ? "👑" : ""}
           {true ? "🖍️" : ""}

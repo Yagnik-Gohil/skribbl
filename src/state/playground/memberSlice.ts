@@ -6,6 +6,7 @@ interface userState {
   admin: boolean;
   name: string;
   score: number;
+  emoji: string;
 }
 
 interface DefaultState {
@@ -20,6 +21,7 @@ const defaultState: DefaultState = {
     admin: false,
     name: '',
     score: 0,
+    emoji: ''
   },
   list: [],
 };
@@ -33,6 +35,7 @@ const memberSlice = createSlice({
       state.currentMember.room = action.payload.room;
       state.currentMember.admin = action.payload.admin;
       state.currentMember.name = action.payload.name;
+      state.currentMember.emoji = action.payload.emoji;
 
       state.list = [state.currentMember]
     },

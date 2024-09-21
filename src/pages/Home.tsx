@@ -8,11 +8,14 @@ import generateId from "../helpers/generateId";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "../state/store";
 import { create } from "../state/playground/memberSlice";
+import { IUser } from "../types";
+import getEmoji from "../helpers/getEmoji";
 
 const Home = () => {
   const navigate = useNavigate();
   const [roomId, setRoomId] = useState<string>("");
   const [name, setName] = useState<string>("");
+  const [emoji, setEmoji] = useState<string>(getEmoji());
   const [showAlert, setShowAlert] = useState<boolean>(false);
   const [alertMessage, setAlertMessage] = useState<string>("");
   const dispatch = useDispatch<AppDispatch>();
@@ -24,11 +27,12 @@ const Home = () => {
       return; // Prevent further execution
     }
 
-    const user = {
+    const user: IUser = {
       id: generateId(),
       room: generateId(),
       admin: true,
       name: name,
+      emoji: emoji,
     };
 
     dispatch(create(user));
@@ -53,7 +57,7 @@ const Home = () => {
 
       const user = {
         id: generateId(),
-        room: +roomId,
+        room: roomId,
         admin: false,
         name: name,
       };
@@ -74,15 +78,19 @@ const Home = () => {
     setRoomId(inputValue);
   };
 
+  const changeEmoji = () => {
+    setEmoji(getEmoji());
+  };
+
   return (
     <div className="h-dvh w-dvw flex items-center justify-center">
       <div className="text-center">
         <div className="my-4 flex justify-center items-center flex-col gap-4">
-          {name.length > 0 ? (
-            <GetProfile seed={name} size={10} />
-          ) : (
-            <GetProfile seed={Math.random().toString()} size={10} />
-          )}
+          <div className="flex gap-4 mb-2">
+            <Button name="🔀" className="text-3xl rotate-180" onClick={changeEmoji} />
+            <GetProfile emoji={emoji} className={"text-7xl"} />
+            <Button name="🔀" className="text-3xl" onClick={changeEmoji} />
+          </div>
           <Input
             placeholder="Name"
             className="rounded p-4 text-xl w-1/3"
