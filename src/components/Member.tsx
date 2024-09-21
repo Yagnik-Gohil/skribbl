@@ -14,6 +14,7 @@ const Member = ({
         <GetProfile seed={member.name} size={5} />
         <p>
           {member.name} {member.admin ? "👑" : ""}
+          {true ? "🖍️" : ""}
         </p>
       </div>
 
