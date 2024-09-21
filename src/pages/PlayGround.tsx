@@ -60,11 +60,15 @@ const PlayGround = () => {
         <div className="flex justify-between h-full border border-[#000] bg-[#FFF] rounded-lg">
           <div className="w-[20%] flex flex-col gap-2 p-2 overflow-y-scroll">
             {memberList.map((member) => (
-              <Member member={member} />
+              <Member key={member.id} member={member} />
             ))}
           </div>
           <div className="w-[55%] border-x border-[#000]">
-            {isGameStarted ? <Canvas /> : <Configuration />}
+            {isGameStarted ? (
+              <Canvas />
+            ) : (
+              <Configuration isAdmin={member.admin} />
+            )}
           </div>
           <div className="w-[25%]">
             <Chat />

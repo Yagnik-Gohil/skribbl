@@ -60,6 +60,7 @@ const Home = () => {
         room: roomId,
         admin: false,
         name: name,
+        emoji: emoji,
       };
 
       dispatch(create(user));

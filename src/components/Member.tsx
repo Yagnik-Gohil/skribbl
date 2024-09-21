@@ -4,11 +4,12 @@ import GetProfile from "./GetProfile";
 const Member = ({
   member,
 }: {
-  member: { name: string; admin: boolean; score: number, emoji: string };
+  member: { id:string; name: string; admin: boolean; score: number, emoji: string };
 }) => {
   return (
     <div
       className={"flex items-center border rounded p-1 justify-between pr-4 bg-[#FFF]"}
+      key={member.id}
     >
       <div className="flex items-center gap-1">
         <GetProfile emoji={member.emoji} className={"text-5xl p-1"} />

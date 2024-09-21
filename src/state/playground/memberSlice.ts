@@ -1,8 +1,8 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface userState {
-  id: number;
-  room: number;
+  id: string;
+  room: string;
   admin: boolean;
   name: string;
   score: number;
@@ -16,8 +16,8 @@ interface DefaultState {
 
 const defaultState: DefaultState = {
   currentMember: {
-    id: 0,
-    room: 0,
+    id: '',
+    room: '',
     admin: false,
     name: '',
     score: 0,
