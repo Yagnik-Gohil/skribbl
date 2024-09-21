@@ -5,9 +5,9 @@ import { getSocket } from "../services/socket";
 
 const Chat = () => {
   const member = useSelector((state: RootState) => state.member.currentMember);
-  const [messages, setMessages] = useState<{ sender: string; text: string }[]>(
-    []
-  );
+  const [messages, setMessages] = useState<
+    { sender: string; text: string; type?: string }[]
+  >([]); // Add optional "type" for system messages
   const [inputMessage, setInputMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement | null>(null); // Ref for scrolling
 
@@ -15,16 +15,42 @@ const Chat = () => {
     const socket = getSocket();
 
     if (socket) {
+      // Listen for regular messages
       socket.on("receive", (data: { user: string; message: string }) => {
-        console.log("message received", data);
         setMessages((prevMessages) => [
           ...prevMessages,
           { sender: data.user, text: data.message },
         ]);
       });
 
+      // Listen for "joined" event and add a system message to the chat
+      socket.on("joined", (data: { name: string }) => {
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          {
+            sender: "System",
+            text: `${data.name} has joined the room`,
+            type: "system",
+          },
+        ]);
+      });
+
+      // Listen for "left" event and add a system message to the chat
+      socket.on("left", (data: { name: string }) => {
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          {
+            sender: "System",
+            text: `${data.name} has left the room`,
+            type: "system",
+          },
+        ]);
+      });
+
       return () => {
         socket.off("receive");
+        socket.off("joined");
+        socket.off("left");
       };
     }
   }, []);
@@ -69,16 +95,24 @@ const Chat = () => {
           <div
             key={index}
             className={`mb-2 flex ${
-              msg.sender === "You" ? "justify-end" : "justify-start"
+              msg.type === "system"
+                ? "justify-center" // Center the system messages
+                : msg.sender === "You"
+                ? "justify-end"
+                : "justify-start"
             }`}
           >
             <div className="flex flex-col">
-              {msg.sender !== "You" && (
+              {msg.sender !== "You" && msg.type !== "system" && (
                 <span className="text-xs">{msg.sender}</span>
               )}
               <div
                 className={`rounded-lg p-3 text-sm max-w-xs text-[#000] ${
-                  msg.sender === "You" ? "bg-theme-yellow" : "bg-[#e5e7eb]"
+                  msg.type === "system"
+                    ? "bg-gray-300 text-gray-600" // Style for system messages
+                    : msg.sender === "You"
+                    ? "bg-theme-yellow"
+                    : "bg-[#e5e7eb]"
                 }`}
               >
                 <p>{msg.text}</p>

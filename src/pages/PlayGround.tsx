@@ -14,6 +14,7 @@ const PlayGround = () => {
   const member = useSelector((state: RootState) => state.member.currentMember);
   const memberList = useSelector((state: RootState) => state.member.list);
   const [isGameStarted, setIsGameStarted] = useState(false);
+  const [isSocketConnected, setIsSocketConnected] = useState(false);
 
   useEffect(() => {
     if (!member.room) {
@@ -23,8 +24,12 @@ const PlayGround = () => {
 
     const socket = connectSocket(); // Connect the socket when the component mounts
 
+    if (socket) {
+      setIsSocketConnected(true);
+    }
+
     socket.emit("join", member); // Emit the join event
-    
+
     // Listen for join event
     socket.on("joined", (data) => {
       console.log(`${data.name} has joined the room`);
@@ -92,9 +97,7 @@ const PlayGround = () => {
               <Configuration isAdmin={member.admin} />
             )}
           </div>
-          <div className="w-[25%]">
-            <Chat />
-          </div>
+          <div className="w-[25%]">{isSocketConnected && <Chat />}</div>
         </div>
         <div className="flex justify-between rounded-lg">
           <Button
