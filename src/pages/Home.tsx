@@ -24,7 +24,7 @@ const Home = () => {
     if (name.trim() === "") {
       setAlertMessage("Name cannot be empty");
       setShowAlert(true);
-      return; // Prevent further execution
+      return;
     }
 
     const user: IUser = {
@@ -35,25 +35,27 @@ const Home = () => {
       emoji: emoji,
     };
 
+    // Dispatch to Redux store
     dispatch(create(user));
+
+    // Navigate to Playground after room creation
     navigate("/playground");
   };
 
   const handleJoinRoom = () => {
-    // Validate if roomId is a 6-digit integer
     const roomIdPattern = /^\d{6}$/;
 
     if (name.trim() === "") {
       setAlertMessage("Name cannot be empty");
       setShowAlert(true);
-      return; // Prevent further execution
+      return;
     }
 
     if (!roomIdPattern.test(roomId)) {
       setAlertMessage("Room ID must be a 6-digit number");
-      setShowAlert(true); // Only show alert when "Join" is clicked and input is invalid
+      setShowAlert(true);
     } else {
-      setShowAlert(false); // Hide alert if the room ID is correct
+      setShowAlert(false);
 
       const user = {
         id: generateId(),
@@ -63,7 +65,10 @@ const Home = () => {
         emoji: emoji,
       };
 
+      // Dispatch to Redux store
       dispatch(create(user));
+
+      // Navigate to Playground after joining room
       navigate("/playground");
     }
   };
@@ -88,7 +93,11 @@ const Home = () => {
       <div className="text-center">
         <div className="my-4 flex justify-center items-center flex-col gap-4">
           <div className="flex gap-4 mb-2">
-            <Button name="🔀" className="text-3xl rotate-180" onClick={changeEmoji} />
+            <Button
+              name="🔀"
+              className="text-3xl rotate-180"
+              onClick={changeEmoji}
+            />
             <GetProfile emoji={emoji} className={"text-7xl"} />
             <Button name="🔀" className="text-3xl" onClick={changeEmoji} />
           </div>
@@ -122,7 +131,7 @@ const Home = () => {
             onClick={handleJoinRoom}
           />
         </div>
-        {/* Only show the alert if Join button is clicked and Room ID or Name is invalid */}
+        {/* Show alert only if necessary */}
         {showAlert && (
           <Alert
             message={alertMessage}

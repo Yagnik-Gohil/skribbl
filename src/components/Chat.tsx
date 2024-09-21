@@ -1,23 +1,56 @@
-import React, { useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "../state/store";
+import { getSocket } from "../services/socket";
 
 const Chat = () => {
-  const [messages, setMessages] = useState([
-    { sender: "bot", text: "Hello! How can I help you?" },
-    { sender: "user", text: "Hi there!" },
-  ]);
+  const member = useSelector((state: RootState) => state.member.currentMember);
+  const [messages, setMessages] = useState<{ sender: string; text: string }[]>(
+    []
+  );
   const [inputMessage, setInputMessage] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement | null>(null); // Ref for scrolling
+
+  useEffect(() => {
+    const socket = getSocket();
+
+    if (socket) {
+      socket.on("receive", (data: { user: string; message: string }) => {
+        console.log("message received", data);
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          { sender: data.user, text: data.message },
+        ]);
+      });
+
+      return () => {
+        socket.off("receive");
+      };
+    }
+  }, []);
+
+  useEffect(() => {
+    // Scroll to the bottom whenever messages change
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollTop = messagesEndRef.current.scrollHeight;
+    }
+  }, [messages]);
 
   const handleSendMessage = () => {
-    if (inputMessage.trim() !== "") {
-      setMessages([...messages, { sender: "user", text: inputMessage }]);
+    const socket = getSocket();
+
+    if (socket && inputMessage.trim() !== "") {
+      socket.emit("send", {
+        user: member.name,
+        room: member.room,
+        message: inputMessage,
+      });
+
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { sender: "You", text: inputMessage },
+      ]);
       setInputMessage("");
-      // Simulate bot response
-      setTimeout(() => {
-        setMessages((prev) => [
-          ...prev,
-          { sender: "bot", text: "I'm here to assist you!" },
-        ]);
-      }, 1000);
     }
   };
 
@@ -26,21 +59,26 @@ const Chat = () => {
   };
 
   return (
-    <div className="flex flex-col shadow-lg overflow-hidden h-full">
+    <div className="flex flex-col shadow-lg overflow-hidden h-full justify-between">
       {/* Chat Messages */}
-      <div className="flex-1 p-4 overflow-y-auto bg-white">
+      <div
+        className="flex-1 p-4 overflow-y-auto bg-white max-h-[600px]"
+        ref={messagesEndRef} // Attach the ref to the messages container
+      >
         {messages.map((msg, index) => (
           <div
             key={index}
             className={`mb-2 flex ${
-              msg.sender === "user" ? "justify-end" : "justify-start"
+              msg.sender === "You" ? "justify-end" : "justify-start"
             }`}
           >
             <div className="flex flex-col">
-              {msg.sender !== "user" && <span className="text-xs">Yagnik</span>}
+              {msg.sender !== "You" && (
+                <span className="text-xs">{msg.sender}</span>
+              )}
               <div
                 className={`rounded-lg p-3 text-sm max-w-xs text-[#000] ${
-                  msg.sender === "user" ? "bg-theme-yellow" : "bg-[#e5e7eb]"
+                  msg.sender === "You" ? "bg-theme-yellow" : "bg-[#e5e7eb]"
                 }`}
               >
                 <p>{msg.text}</p>

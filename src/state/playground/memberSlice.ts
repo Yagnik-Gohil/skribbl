@@ -16,12 +16,12 @@ interface DefaultState {
 
 const defaultState: DefaultState = {
   currentMember: {
-    id: '',
-    room: '',
+    id: "",
+    room: "",
     admin: false,
-    name: '',
+    name: "",
     score: 0,
-    emoji: ''
+    emoji: "",
   },
   list: [],
 };

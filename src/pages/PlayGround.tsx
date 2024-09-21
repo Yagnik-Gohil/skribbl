@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../state/store";
 import { useNavigate } from "react-router-dom";
@@ -7,28 +7,50 @@ import Chat from "../components/Chat";
 import Canvas from "../components/Canvas";
 import Configuration from "../components/Configuration";
 import Button from "../components/Button";
+import { connectSocket, disconnectSocket, getSocket } from "../services/socket";
 
 const PlayGround = () => {
   const navigate = useNavigate();
   const member = useSelector((state: RootState) => state.member.currentMember);
   const memberList = useSelector((state: RootState) => state.member.list);
-  const isGameStarted = false;
+  const [isGameStarted, setIsGameStarted] = useState(false);
 
   useEffect(() => {
     if (!member.room) {
       navigate("/");
+      return;
     }
 
-    if (member.admin) {
-      // Create Room Logic
-    } else {
-      // Join Room Logic
+    const socket = connectSocket(); // Connect the socket when the component mounts
+
+    socket.emit("join", member); // Emit the join event
+    
+    // Listen for join event
+    socket.on("joined", (data) => {
+      console.log(`${data.name} has joined the room`);
+    });
+
+    // Listen for leave event
+    socket.on("left", (data) => {
+      console.log(`${data.name} has left the room`);
+    });
+
+    return () => {
+      disconnectSocket(); // Cleanup the socket connection on unmount
+    };
+  }, [member, navigate]);
+
+  const handleLeaveRoom = () => {
+    const socket = getSocket();
+    if (socket) {
+      socket.emit("leave", member); // Emit the leave event
     }
-  }, [member.room, navigate]);
+    navigate("/");
+  };
 
   return (
     <div className="h-dvh w-dvw flex items-center justify-center text-[#000]">
-      <div className="container flex flex-col h-[80%] gap-1">
+      <div className="container flex flex-col h-[90%] gap-1">
         <div className="flex justify-between items-center bg-[#FFF] rounded-lg px-3 py-2">
           <p>
             <span className="text-3xl">⏱️:</span>{" "}
@@ -73,6 +95,16 @@ const PlayGround = () => {
           <div className="w-[25%]">
             <Chat />
           </div>
+        </div>
+        <div className="flex justify-between rounded-lg">
+          <Button
+            name="Leave Room"
+            onClick={handleLeaveRoom}
+            className="bg-theme-yellow"
+          />
+          <div className="bg-theme-yellow">Color Selection</div>
+          <div className="bg-theme-yellow">Eraser</div>
+          <div className="bg-theme-yellow">Clear Screen</div>
         </div>
       </div>
     </div>
