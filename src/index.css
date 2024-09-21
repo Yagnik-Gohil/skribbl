@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  --tw-bg-opacity: 1;
+  background-color: rgb(45 64 89 / var(--tw-bg-opacity)) /* #2d4059 */;
+  height: 100dvh;
+  width: 100dvw;
+}
+/* width */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #F1F1F1; 
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #526a89; 
+  border-radius: 3px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #2D4059; 
+}
