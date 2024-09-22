@@ -9,21 +9,13 @@ interface userState {
   emoji: string;
 }
 
-interface DefaultState {
-  currentMember: userState;
-  list: userState[];
-}
-
-const defaultState: DefaultState = {
-  currentMember: {
-    id: "",
-    room: "",
-    admin: false,
-    name: "",
-    score: 0,
-    emoji: "",
-  },
-  list: [],
+const defaultState: userState = {
+  id: "",
+  room: "",
+  admin: false,
+  name: "",
+  score: 0,
+  emoji: "",
 };
 
 const memberSlice = createSlice({
@@ -31,13 +23,11 @@ const memberSlice = createSlice({
   initialState: defaultState,
   reducers: {
     create: (state, action) => {
-      state.currentMember.id = action.payload.id;
-      state.currentMember.room = action.payload.room;
-      state.currentMember.admin = action.payload.admin;
-      state.currentMember.name = action.payload.name;
-      state.currentMember.emoji = action.payload.emoji;
-
-      state.list = [state.currentMember]
+      state.id = action.payload.id;
+      state.room = action.payload.room;
+      state.admin = action.payload.admin;
+      state.name = action.payload.name;
+      state.emoji = action.payload.emoji;
     },
   },
 });

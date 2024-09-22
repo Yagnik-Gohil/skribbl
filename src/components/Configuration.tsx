@@ -39,12 +39,12 @@ const Configuration = ({ isAdmin }: { isAdmin: boolean }) => {
       <div className="bg-theme-red p-4 rounded-md w-full max-w-sm">
         {/* Rounds */}
         <div className="flex items-center justify-between my-2">
-          <p className="text-[#FFF]">Rounds 🔄</p>
+          <p className="text-[#FFF] text-xl">Rounds 🔄</p>
           <select
             name="rounds"
             value={settings.rounds}
             onChange={handleChange}
-            className="ml-4 p-1 border rounded"
+            className="ml-4 p-1 rounded bg-theme-yellow"
             disabled={!isAdmin}
           >
             {[1, 2, 3, 4, 5, 10].map((round) => (
@@ -57,12 +57,12 @@ const Configuration = ({ isAdmin }: { isAdmin: boolean }) => {
 
         {/* Timer */}
         <div className="flex items-center justify-between my-2">
-          <p className="text-[#FFF]">Timer ⏱️</p>
+          <p className="text-[#FFF] text-xl">Timer ⏱️</p>
           <select
-            name="timer"
+            name="drawTime"
             value={settings.drawTime}
             onChange={handleChange}
-            className="ml-4 p-1 border rounded"
+            className="ml-4 p-1 rounded bg-theme-yellow"
             disabled={!isAdmin}
           >
             {[60, 70, 80, 90, 100, 110, 120].map((time) => (
@@ -75,12 +75,12 @@ const Configuration = ({ isAdmin }: { isAdmin: boolean }) => {
 
         {/* Hints */}
         <div className="flex items-center justify-between my-2">
-          <p className="text-[#FFF]">Hints 💡</p>
+          <p className="text-[#FFF] text-xl">Hints 💡</p>
           <select
             name="hints"
             value={settings.hints}
             onChange={handleChange}
-            className="ml-4 p-1 border rounded"
+            className="ml-4 p-1 rounded bg-theme-yellow"
             disabled={!isAdmin}
           >
             {[0, 1, 2, 3].map((hint) => (
@@ -93,12 +93,12 @@ const Configuration = ({ isAdmin }: { isAdmin: boolean }) => {
 
         {/* Word Count */}
         <div className="flex items-center justify-between my-2">
-          <p className="text-[#FFF]">Word Count 🔢</p>
+          <p className="text-[#FFF] text-xl">Word Count 🔢</p>
           <select
             name="wordCount"
             value={settings.wordCount}
             onChange={handleChange}
-            className="ml-4 p-1 border rounded"
+            className="ml-4 p-1 rounded bg-theme-yellow"
             disabled={!isAdmin}
           >
             {[1, 2, 3].map((count) => (
@@ -111,12 +111,12 @@ const Configuration = ({ isAdmin }: { isAdmin: boolean }) => {
 
         {/* Word Mode */}
         <div className="flex items-center justify-between my-2">
-          <p className="text-[#FFF]">Word Mode 🔎</p>
+          <p className="text-[#FFF] text-xl">Word Mode 🔎</p>
           <select
             name="wordMode"
             value={settings.wordMode}
             onChange={handleChange}
-            className="ml-4 p-1 border rounded"
+            className="ml-4 p-1 rounded bg-theme-yellow"
             disabled={!isAdmin}
           >
             {["normal", "hidden", "both"].map((mode) => (

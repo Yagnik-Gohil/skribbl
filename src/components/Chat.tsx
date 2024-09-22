@@ -2,9 +2,10 @@ import React, { useEffect, useState, useRef } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../state/store";
 import { getSocket } from "../services/socket";
+import Button from "./Button";
 
 const Chat = () => {
-  const member = useSelector((state: RootState) => state.member.currentMember);
+  const member = useSelector((state: RootState) => state.member);
   const [messages, setMessages] = useState<
     { sender: string; text: string; type?: string }[]
   >([]); // Add optional "type" for system messages
@@ -131,21 +132,20 @@ const Chat = () => {
       </div>
 
       {/* Chat Input */}
-      <div className="flex items-center p-3 bg-[#f3f4f6] border-t">
+      <div className="flex items-center p-3 bg-theme-red border-t">
         <input
           type="text"
           value={inputMessage}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           placeholder="Guess the word..."
-          className="flex-1 p-2 border rounded-lg outline-none"
+          className="w-full p-2 border rounded-md outline-none"
         />
-        <button
+        <Button
+          name="Send"
           onClick={handleSendMessage}
-          className="ml-3 p-2 text-white border rounded-lg shadow"
-        >
-          Send
-        </button>
+          className="ml-3 p-2 text-white rounded-md shadow bg-theme-yellow"
+        />
       </div>
     </div>
   );

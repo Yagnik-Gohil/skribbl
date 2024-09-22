@@ -2,17 +2,16 @@ import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../state/store";
 import { useNavigate } from "react-router-dom";
-import Member from "../components/Member";
 import Chat from "../components/Chat";
 import Canvas from "../components/Canvas";
 import Configuration from "../components/Configuration";
 import Button from "../components/Button";
 import { connectSocket, disconnectSocket, getSocket } from "../services/socket";
+import MemberList from "../components/MemberList";
 
 const PlayGround = () => {
   const navigate = useNavigate();
-  const member = useSelector((state: RootState) => state.member.currentMember);
-  const memberList = useSelector((state: RootState) => state.member.list);
+  const member = useSelector((state: RootState) => state.member);
   const [isGameStarted, setIsGameStarted] = useState(false);
   const [isSocketConnected, setIsSocketConnected] = useState(false);
 
@@ -31,20 +30,8 @@ const PlayGround = () => {
       // Emit join event
       socket.emit("join", member);
 
-      // Register join event listener
-      socket.on("joined", (data) => {
-        console.log(`${data.name} has joined the room`);
-      });
-
-      // Register leave event listener
-      socket.on("left", (data) => {
-        console.log(`${data.name} has left the room`);
-      });
-
       // Cleanup the socket connection and event listeners on unmount
       return () => {
-        socket.off("joined"); // Clean up "joined" event listener
-        socket.off("left"); // Clean up "left" event listener
         disconnectSocket(); // Disconnect socket when the component unmounts
         setIsSocketConnected(false); // Reset connection state
         console.log("Socket disconnected");
@@ -92,19 +79,17 @@ const PlayGround = () => {
           <Button name="⚙️" className="text-3xl select-none"></Button>
         </div>
         <div className="flex justify-between h-full border border-[#000] bg-[#FFF] rounded-lg">
-          <div className="w-[20%] flex flex-col gap-2 p-2 overflow-y-scroll">
-            {memberList.map((member) => (
-              <Member key={member.id} member={member} />
-            ))}
+          <div className="w-[20%]">
+            {isSocketConnected && <MemberList />}
           </div>
-          <div className="w-[55%] border-x border-[#000]">
+          <div className="w-[60%] border-x border-[#000]">
             {isGameStarted ? (
               <Canvas />
             ) : (
               <Configuration isAdmin={member.admin} />
             )}
           </div>
-          <div className="w-[25%]">{isSocketConnected && <Chat />}</div>
+          <div className="w-[20%]">{isSocketConnected && <Chat />}</div>
         </div>
         <div className="flex justify-between rounded-lg">
           <Button
