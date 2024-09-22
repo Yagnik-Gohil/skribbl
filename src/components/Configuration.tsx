@@ -1,18 +1,52 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { getSocket } from "../services/socket";
 import Button from "./Button";
+import { IConfiguration } from "../types";
 
-const Configuration = ({ isAdmin }: { isAdmin: boolean }) => {
+const Configuration = ({
+  isAdmin,
+  room,
+}: {
+  isAdmin: boolean;
+  room: string;
+}) => {
   // Default values for the select options
-  const defaultSettings = {
+  const defaultSettings: IConfiguration = {
+    room: room,
     rounds: 3,
     drawTime: 60,
     hints: 1,
     wordCount: 1,
     wordMode: "normal",
+    isGameStarted: false,
   };
 
   // State to store the selected values
   const [settings, setSettings] = useState(defaultSettings);
+
+  useEffect(() => {
+    const socket = getSocket();
+
+    if (socket) {
+      socket.on("configuration", (data) => {
+        setSettings(data);
+      });
+
+      return () => {
+        socket.off("configuration");
+      };
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isAdmin) {
+      const socket = getSocket();
+
+      if (socket) {
+        socket.emit("configuration", settings);
+      }
+    }
+  }, [settings]);
 
   // Function to reset the settings
   const resetSettings = () => {
@@ -30,8 +64,10 @@ const Configuration = ({ isAdmin }: { isAdmin: boolean }) => {
 
   // Function to start the game
   const startGame = () => {
-    console.log("Game Started with Settings:", settings);
-    // Add your logic to start the game here
+    setSettings((prevSettings) => ({
+      ...prevSettings,
+      isGameStarted: true,
+    }));
   };
 
   return (

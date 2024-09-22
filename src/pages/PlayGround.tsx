@@ -79,14 +79,11 @@ const PlayGround = () => {
           <Button name="⚙️" className="text-3xl select-none"></Button>
         </div>
         <div className="flex justify-between h-full border border-[#000] bg-[#FFF] rounded-lg">
-          <div className="w-[20%]">
-            {isSocketConnected && <MemberList />}
-          </div>
+          <div className="w-[20%]">{isSocketConnected && <MemberList />}</div>
           <div className="w-[60%] border-x border-[#000]">
-            {isGameStarted ? (
-              <Canvas />
-            ) : (
-              <Configuration isAdmin={member.admin} />
+            {isGameStarted && isSocketConnected && <Canvas />}
+            {isSocketConnected && (
+              <Configuration isAdmin={member.admin} room={member.room} />
             )}
           </div>
           <div className="w-[20%]">{isSocketConnected && <Chat />}</div>
