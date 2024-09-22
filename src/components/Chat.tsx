@@ -24,24 +24,24 @@ const Chat = () => {
       });
 
       // Listen for "joined" event and add a system message to the chat
-      socket.on("joined", (data: { name: string }) => {
+      socket.on("joined", (data: { user: { name: string } }) => {
         setMessages((prevMessages) => [
           ...prevMessages,
           {
             sender: "System",
-            text: `${data.name} has joined the room`,
+            text: `${data.user.name} has joined the room`,
             type: "system",
           },
         ]);
       });
 
       // Listen for "left" event and add a system message to the chat
-      socket.on("left", (data: { name: string }) => {
+      socket.on("left", (data: { user: { name: string } }) => {
         setMessages((prevMessages) => [
           ...prevMessages,
           {
             sender: "System",
-            text: `${data.name} has left the room`,
+            text: `${data.user.name} has left the room`,
             type: "system",
           },
         ]);
@@ -82,6 +82,14 @@ const Chat = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputMessage(e.target.value);
+  };
+
+  // Handle key down event for "Enter" press
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault(); // Prevent the default behavior of pressing Enter (e.g., form submission)
+      handleSendMessage(); // Trigger the send message function
+    }
   };
 
   return (
@@ -128,6 +136,7 @@ const Chat = () => {
           type="text"
           value={inputMessage}
           onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
           placeholder="Guess the word..."
           className="flex-1 p-2 border rounded-lg outline-none"
         />

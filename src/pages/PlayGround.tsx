@@ -25,24 +25,31 @@ const PlayGround = () => {
     const socket = connectSocket(); // Connect the socket when the component mounts
 
     if (socket) {
-      setIsSocketConnected(true);
+      console.log("Hello");
+      setIsSocketConnected(true); // Set connection state
+
+      // Emit join event
+      socket.emit("join", member);
+
+      // Register join event listener
+      socket.on("joined", (data) => {
+        console.log(`${data.name} has joined the room`);
+      });
+
+      // Register leave event listener
+      socket.on("left", (data) => {
+        console.log(`${data.name} has left the room`);
+      });
+
+      // Cleanup the socket connection and event listeners on unmount
+      return () => {
+        socket.off("joined"); // Clean up "joined" event listener
+        socket.off("left"); // Clean up "left" event listener
+        disconnectSocket(); // Disconnect socket when the component unmounts
+        setIsSocketConnected(false); // Reset connection state
+        console.log("Socket disconnected");
+      };
     }
-
-    socket.emit("join", member); // Emit the join event
-
-    // Listen for join event
-    socket.on("joined", (data) => {
-      console.log(`${data.name} has joined the room`);
-    });
-
-    // Listen for leave event
-    socket.on("left", (data) => {
-      console.log(`${data.name} has left the room`);
-    });
-
-    return () => {
-      disconnectSocket(); // Cleanup the socket connection on unmount
-    };
   }, [member, navigate]);
 
   const handleLeaveRoom = () => {
