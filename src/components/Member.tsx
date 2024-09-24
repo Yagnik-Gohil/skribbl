@@ -1,10 +1,13 @@
 import React from "react";
 import GetProfile from "./GetProfile";
+import { IUser } from "../types";
 
 const Member = ({
   member,
+  isCurrentTurn
 }: {
-  member: { id:string; name: string; admin: boolean; score: number, emoji: string };
+  member: IUser;
+  isCurrentTurn: boolean
 }) => {
   return (
     <div
@@ -15,7 +18,7 @@ const Member = ({
         <GetProfile emoji={member.emoji} className={"text-5xl p-1"} />
         <p>
           {member.name} {member.admin ? "👑" : ""}
-          {true ? "🖍️" : ""}
+          {isCurrentTurn ? "🖍️" : ""}
         </p>
       </div>
 

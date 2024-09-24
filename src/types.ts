@@ -1,17 +1,34 @@
-export interface IUser {
-    id: string;
-    room: string;
-    admin: boolean;
-    name: string;
-    emoji: string;
-}
 type WORD_MODE = "normal" | "hidden" | "both";
+type STATUS = "live" | "lobby" | "word-selection";
+export interface IUser {
+  id: string;
+  room: string;
+  admin: boolean;
+  name: string;
+  emoji: string;
+  score: number;
+}
 export interface IConfiguration {
-    room: string;
-    isGameStarted: boolean;
-    drawTime: number;
-    hints: number;
-    rounds: number;
-    wordCount: number;
-    wordMode: WORD_MODE;
-  }
+  room: string;
+  drawTime: number;
+  hints: number;
+  rounds: number;
+  wordCount: number;
+  wordMode: WORD_MODE;
+}
+export interface IWordSelected {
+  currentTurn: IUser;
+  word: string;
+}
+export interface IGameState {
+  status: STATUS;
+  players: string[]; // Array of clientIds
+  currentTurn: number;
+  word: string;
+  drawTime: number;
+  rounds: number;
+  currentRound: number;
+  wordMode: WORD_MODE;
+  wordCount: number;
+  hints: number;
+}

@@ -8,12 +8,21 @@ import Configuration from "../components/Configuration";
 import Button from "../components/Button";
 import { connectSocket, disconnectSocket, getSocket } from "../services/socket";
 import MemberList from "../components/MemberList";
+import SelectWord from "../components/SelectWord";
+import { IGameState, IUser, IWordSelected } from "../types";
+import Word from "../components/Word";
 
 const PlayGround = () => {
   const navigate = useNavigate();
   const member = useSelector((state: RootState) => state.member);
   const [isGameStarted, setIsGameStarted] = useState(false);
+  const [isSelectingWord, setIsSelectingWord] = useState(false);
   const [isSocketConnected, setIsSocketConnected] = useState(false);
+  const [randomWord, setRandomWord] = useState("Random Word");
+  const [isGuessed, setIsGuessed] = useState(false);
+  const [hintIndex, setHintIndex] = useState([]);
+  const [wordList, setWordList] = useState([]);
+  const [currentTurn, setCurrentTurn] = useState<IUser>(member);
 
   useEffect(() => {
     if (!member.room) {
@@ -30,11 +39,44 @@ const PlayGround = () => {
       // Emit join event
       socket.emit("join", member);
 
-      // Cleanup the socket connection and event listeners on unmount
+      socket.on(
+        "joined",
+        (data: {
+          user: IUser;
+          members: IUser[];
+          gameState: IGameState;
+          currentTurn: IUser;
+        }) => {
+          console.log(data);
+          setCurrentTurn(data.currentTurn);
+          if (data.gameState.status == "lobby") {
+            setIsSelectingWord(false);
+            setIsGameStarted(false);
+          } else if (data.gameState.status == "word-selection") {
+            setIsSelectingWord(true);
+            setIsGameStarted(false);
+          } else {
+            setIsSelectingWord(false);
+            setIsGameStarted(true);
+          }
+        }
+      );
+
+      socket.on("word-selection", (data) => {
+        setWordList(data.list);
+        setCurrentTurn(data.currentTurn);
+        setIsSelectingWord(true);
+      });
+
+      socket.on("game-started", (data: IWordSelected) => {
+        setIsGameStarted(true);
+        setIsSelectingWord(false);
+        setRandomWord(data.word);
+      });
+
       return () => {
-        disconnectSocket(); // Disconnect socket when the component unmounts
-        setIsSocketConnected(false); // Reset connection state
-        console.log("Socket disconnected");
+        socket.off("game-started");
+        socket.off("select-word");
       };
     }
   }, [member, navigate]);
@@ -59,8 +101,17 @@ const PlayGround = () => {
           <div className="text-center">
             <span className="text-xs">Guess This</span>
             <div className="flex">
-              <p className="font-bold text-lg">Random Word</p>{" "}
-              <span className="ml-2 text-sm font-normal">6 4</span>
+              <Word
+                word={randomWord}
+                isGuessed={member.id == currentTurn.id || isGuessed}
+                hints={hintIndex}
+              />
+              <span className="ml-2 text-sm font-normal">
+                {randomWord
+                  .split(" ")
+                  .map((word) => word.length)
+                  .join(" ")}
+              </span>
             </div>
           </div>
           <div className="flex gap-3">
@@ -79,11 +130,25 @@ const PlayGround = () => {
           <Button name="⚙️" className="text-3xl select-none"></Button>
         </div>
         <div className="flex justify-between h-full border border-[#000] bg-[#FFF] rounded-lg">
-          <div className="w-[20%]">{isSocketConnected && <MemberList />}</div>
+          <div className="w-[20%]">
+            {isSocketConnected && <MemberList currentTurn={currentTurn} />}
+          </div>
           <div className="w-[60%] border-x border-[#000]">
-            {isGameStarted && isSocketConnected && <Canvas />}
-            {isSocketConnected && (
-              <Configuration isAdmin={member.admin} room={member.room} />
+            {isSocketConnected && !isGameStarted && !isSelectingWord && (
+              <Configuration member={member} />
+            )}
+            {isSocketConnected &&
+              !isGameStarted &&
+              isSelectingWord &&
+              currentTurn && (
+                <SelectWord
+                  member={member}
+                  currentTurn={currentTurn}
+                  wordList={wordList}
+                />
+              )}
+            {isSocketConnected && isGameStarted && !isSelectingWord && (
+              <Canvas />
             )}
           </div>
           <div className="w-[20%]">{isSocketConnected && <Chat />}</div>

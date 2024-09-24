@@ -3,8 +3,9 @@ import { useSelector } from "react-redux";
 import { RootState } from "../state/store";
 import Member from "./Member";
 import { getSocket } from "../services/socket";
+import { IUser } from "../types";
 
-const MemberList = () => {
+const MemberList = ({ currentTurn }: { currentTurn: IUser }) => {
   const member = useSelector((state: RootState) => state.member);
 
   const [memberList, setMemberList] = useState([member]);
@@ -34,7 +35,11 @@ const MemberList = () => {
     <div className="foverflow-hidden h-full">
       <div className="flex flex-col gap-2 p-2 overflow-y-auto max-h-[670px]">
         {memberList.map((member) => (
-          <Member key={member.id} member={member} />
+          <Member
+            key={member.id}
+            member={member}
+            isCurrentTurn={member.id == currentTurn.id}
+          />
         ))}
       </div>
     </div>

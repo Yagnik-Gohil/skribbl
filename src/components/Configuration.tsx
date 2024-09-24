@@ -1,49 +1,42 @@
 import React, { useEffect, useState } from "react";
 import { getSocket } from "../services/socket";
 import Button from "./Button";
-import { IConfiguration } from "../types";
+import { IConfiguration, IUser } from "../types";
 
-const Configuration = ({
-  isAdmin,
-  room,
-}: {
-  isAdmin: boolean;
-  room: string;
-}) => {
+const Configuration = ({ member }: { member: IUser }) => {
   // Default values for the select options
   const defaultSettings: IConfiguration = {
-    room: room,
+    room: member.room,
     rounds: 3,
     drawTime: 60,
     hints: 1,
-    wordCount: 1,
+    wordCount: 2,
     wordMode: "normal",
-    isGameStarted: false,
   };
 
   // State to store the selected values
-  const [settings, setSettings] = useState(defaultSettings);
+  const [settings, setSettings] = useState<IConfiguration>(defaultSettings);
 
   useEffect(() => {
     const socket = getSocket();
 
     if (socket) {
-      socket.on("configuration", (data) => {
+      socket.on("configuration-updated", (data) => {
         setSettings(data);
       });
 
       return () => {
-        socket.off("configuration");
+        socket.off("configuration-updated");
       };
     }
   }, []);
 
   useEffect(() => {
-    if (isAdmin) {
+    if (member.admin) {
       const socket = getSocket();
 
       if (socket) {
-        socket.emit("configuration", settings);
+        socket.emit("update-configuration", settings);
       }
     }
   }, [settings]);
@@ -64,10 +57,12 @@ const Configuration = ({
 
   // Function to start the game
   const startGame = () => {
-    setSettings((prevSettings) => ({
-      ...prevSettings,
-      isGameStarted: true,
-    }));
+    const socket = getSocket();
+
+    if (socket) {
+      console.log("selecting word...")
+      socket.emit("word-selection", member);
+    }
   };
 
   return (
@@ -81,7 +76,7 @@ const Configuration = ({
             value={settings.rounds}
             onChange={handleChange}
             className="ml-4 p-1 rounded bg-theme-yellow"
-            disabled={!isAdmin}
+            disabled={!member.admin}
           >
             {[1, 2, 3, 4, 5, 10].map((round) => (
               <option key={round} value={round}>
@@ -99,7 +94,7 @@ const Configuration = ({
             value={settings.drawTime}
             onChange={handleChange}
             className="ml-4 p-1 rounded bg-theme-yellow"
-            disabled={!isAdmin}
+            disabled={!member.admin}
           >
             {[60, 70, 80, 90, 100, 110, 120].map((time) => (
               <option key={time} value={time}>
@@ -117,7 +112,7 @@ const Configuration = ({
             value={settings.hints}
             onChange={handleChange}
             className="ml-4 p-1 rounded bg-theme-yellow"
-            disabled={!isAdmin}
+            disabled={!member.admin}
           >
             {[0, 1, 2, 3].map((hint) => (
               <option key={hint} value={hint}>
@@ -135,7 +130,7 @@ const Configuration = ({
             value={settings.wordCount}
             onChange={handleChange}
             className="ml-4 p-1 rounded bg-theme-yellow"
-            disabled={!isAdmin}
+            disabled={!member.admin}
           >
             {[1, 2, 3].map((count) => (
               <option key={count} value={count}>
@@ -153,7 +148,7 @@ const Configuration = ({
             value={settings.wordMode}
             onChange={handleChange}
             className="ml-4 p-1 rounded bg-theme-yellow"
-            disabled={!isAdmin}
+            disabled={!member.admin}
           >
             {["normal", "hidden", "both"].map((mode) => (
               <option key={mode} value={mode}>
@@ -165,7 +160,7 @@ const Configuration = ({
 
         {/* Reset and Start Buttons */}
         <div className="flex justify-between mt-4">
-          {isAdmin ? (
+          {member.admin ? (
             <>
               <Button
                 key="reset-btn"
