@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
-import { RootState } from "../state/store";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "../state/store";
 import { useNavigate } from "react-router-dom";
 import Chat from "../components/Chat";
 import Canvas from "../components/Canvas";
@@ -9,20 +9,34 @@ import Button from "../components/Button";
 import { connectSocket, disconnectSocket, getSocket } from "../services/socket";
 import MemberList from "../components/MemberList";
 import SelectWord from "../components/SelectWord";
-import { IGameState, IUser, IWordSelected } from "../types";
+import { IJoined, ILeft, IUser, IWordSelected, IWordSelection } from "../types";
 import Word from "../components/Word";
+import { makeAdmin } from "../state/playground/memberSlice";
 
 const PlayGround = () => {
+  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const member = useSelector((state: RootState) => state.member);
+  const [memberList, setMemberList] = useState([member]);
   const [isGameStarted, setIsGameStarted] = useState(false);
   const [isSelectingWord, setIsSelectingWord] = useState(false);
   const [isSocketConnected, setIsSocketConnected] = useState(false);
-  const [randomWord, setRandomWord] = useState("Random Word");
+  const [word, setWord] = useState("Random Word");
   const [isGuessed, setIsGuessed] = useState(false);
   const [hintIndex, setHintIndex] = useState([]);
-  const [wordList, setWordList] = useState([]);
-  const [currentTurn, setCurrentTurn] = useState<IUser>(member);
+  const [wordList, setWordList] = useState<string[]>([]);
+  const [currentTurn, setCurrentTurn] = useState<IUser>({
+    admin: false,
+    emoji: "",
+    id: "",
+    name: "",
+    room: "",
+    score: 0,
+  });
+
+  const [currentRound, setCurrentRound] = useState(0);
+  const [rounds, setRounds] = useState(3);
+  const [timer, setTimer] = useState(60);
 
   useEffect(() => {
     if (!member.room) {
@@ -31,7 +45,6 @@ const PlayGround = () => {
     }
 
     const socket = connectSocket(); // Connect the socket when the component mounts
-
     if (socket) {
       console.log("Hello");
       setIsSocketConnected(true); // Set connection state
@@ -39,52 +52,70 @@ const PlayGround = () => {
       // Emit join event
       socket.emit("join", member);
 
-      socket.on(
-        "joined",
-        (data: {
-          user: IUser;
-          members: IUser[];
-          gameState: IGameState;
-          currentTurn: IUser;
-        }) => {
-          console.log(data);
-          setCurrentTurn(data.currentTurn);
-          if (data.gameState.status == "lobby") {
-            setIsSelectingWord(false);
-            setIsGameStarted(false);
-          } else if (data.gameState.status == "word-selection") {
-            setIsSelectingWord(true);
-            setIsGameStarted(false);
-          } else {
-            setIsSelectingWord(false);
-            setIsGameStarted(true);
-          }
-        }
-      );
+      socket.on("joined", (data: IJoined) => {
+        setMemberList(data.members);
+        setCurrentTurn(data.currentTurn);
+        setRounds(data.gameState.rounds);
+        setCurrentRound(data.gameState.currentRound);
+        setTimer(data.gameState.drawTime);
+        setWord(data.gameState.word);
 
-      socket.on("word-selection", (data) => {
+        if (data.gameState.status == "lobby") {
+          setIsSelectingWord(false);
+          setIsGameStarted(false);
+        } else if (data.gameState.status == "word-selection") {
+          setIsSelectingWord(true);
+          setIsGameStarted(false);
+        } else {
+          setIsSelectingWord(false);
+          setIsGameStarted(true);
+        }
+      });
+
+      socket.on("word-selection", (data: IWordSelection) => {
         setWordList(data.list);
         setCurrentTurn(data.currentTurn);
+        setRounds(data.gameState.rounds);
+        setCurrentRound(data.gameState.currentRound);
+        setTimer(data.gameState.drawTime);
+
         setIsSelectingWord(true);
       });
 
       socket.on("game-started", (data: IWordSelected) => {
         setIsGameStarted(true);
         setIsSelectingWord(false);
-        setRandomWord(data.word);
+        setWord(data.word);
+      });
+
+      // Listen for "left" event and add a system message to the chat
+      socket.on("left", (data: ILeft) => {
+        console.log(data)
+
+        const admin = data.members.find((member) => member.admin);
+        if(admin && admin.id && member.id == admin.id && !member.admin) {
+          // Make current user to admin.
+          dispatch(makeAdmin());
+        }
+
+        setMemberList(data.members);
+        setCurrentTurn(data.currentTurn);
       });
 
       return () => {
+        socket.off("joined");
+        socket.off("word-selection");
         socket.off("game-started");
-        socket.off("select-word");
+        socket.off("left");
       };
     }
-  }, [member, navigate]);
+  }, [navigate]);
 
   const handleLeaveRoom = () => {
     const socket = getSocket();
     if (socket) {
       socket.emit("leave", member); // Emit the leave event
+      disconnectSocket()
     }
     navigate("/");
   };
@@ -95,19 +126,21 @@ const PlayGround = () => {
         <div className="flex justify-between items-center bg-[#FFF] rounded-lg px-3 py-2">
           <p>
             <span className="text-3xl">⏱️:</span>{" "}
-            <span className="text-3xl font-bold">60</span>
+            <span className="text-3xl font-bold">{timer}</span>
           </p>
-          <p>Round 1 of 3</p>
+          <p>
+            Round {currentRound} of {rounds}
+          </p>
           <div className="text-center">
             <span className="text-xs">Guess This</span>
             <div className="flex">
               <Word
-                word={randomWord}
+                word={word}
                 isGuessed={member.id == currentTurn.id || isGuessed}
                 hints={hintIndex}
               />
               <span className="ml-2 text-sm font-normal">
-                {randomWord
+                {word
                   .split(" ")
                   .map((word) => word.length)
                   .join(" ")}
@@ -131,7 +164,7 @@ const PlayGround = () => {
         </div>
         <div className="flex justify-between h-full border border-[#000] bg-[#FFF] rounded-lg">
           <div className="w-[20%]">
-            {isSocketConnected && <MemberList currentTurn={currentTurn} />}
+            {isSocketConnected && <MemberList memberList={memberList} currentTurn={currentTurn} />}
           </div>
           <div className="w-[60%] border-x border-[#000]">
             {isSocketConnected && !isGameStarted && !isSelectingWord && (
@@ -151,7 +184,7 @@ const PlayGround = () => {
               <Canvas />
             )}
           </div>
-          <div className="w-[20%]">{isSocketConnected && <Chat />}</div>
+          <div className="w-[20%]">{isSocketConnected && <Chat member={member} word={word} isGuessed={isGuessed} setIsGuessed={setIsGuessed}/>}</div>
         </div>
         <div className="flex justify-between rounded-lg">
           <Button

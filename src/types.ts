@@ -32,3 +32,23 @@ export interface IGameState {
   wordCount: number;
   hints: number;
 }
+
+export interface IWordSelection {
+  currentTurn: IUser;
+  gameState: IGameState;
+  list: string[];
+}
+
+export interface IJoined {
+  user: IUser;
+  members: IUser[];
+  gameState: IGameState;
+  currentTurn: IUser;
+}
+
+export interface ILeft {
+  user: IUser;
+  members: IUser[];
+  gameState: IGameState;
+  currentTurn: IUser;
+}

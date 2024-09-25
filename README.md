@@ -1,4 +1,4 @@
 # Scribbl Front-end (React & Socket)
 
-### Backend:
+### Back-end:
 https://github.com/Yagnik-Gohil/skribbl-server

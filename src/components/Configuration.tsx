@@ -60,7 +60,6 @@ const Configuration = ({ member }: { member: IUser }) => {
     const socket = getSocket();
 
     if (socket) {
-      console.log("selecting word...")
       socket.emit("word-selection", member);
     }
   };

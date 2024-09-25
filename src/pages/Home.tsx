@@ -33,6 +33,7 @@ const Home = () => {
       admin: true,
       name: name,
       emoji: emoji,
+      score: 0,
     };
 
     // Dispatch to Redux store
@@ -57,12 +58,13 @@ const Home = () => {
     } else {
       setShowAlert(false);
 
-      const user = {
+      const user: IUser = {
         id: generateId(),
         room: roomId,
         admin: false,
         name: name,
         emoji: emoji,
+        score: 0,
       };
 
       // Dispatch to Redux store

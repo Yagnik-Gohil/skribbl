@@ -1,16 +1,32 @@
-import React, { useEffect, useState, useRef } from "react";
-import { useSelector } from "react-redux";
-import { RootState } from "../state/store";
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  Dispatch,
+  SetStateAction,
+} from "react";
+import { stringSimilarity } from "string-similarity-js";
 import { getSocket } from "../services/socket";
 import Button from "./Button";
+import { IUser } from "../types";
 
-const Chat = () => {
-  const member = useSelector((state: RootState) => state.member);
+const Chat = ({
+  member,
+  word,
+  isGuessed,
+  setIsGuessed,
+}: {
+  member: IUser;
+  word: string;
+  isGuessed: boolean;
+  setIsGuessed: Dispatch<SetStateAction<boolean>>;
+}) => {
   const [messages, setMessages] = useState<
     { sender: string; text: string; type?: string }[]
   >([]); // Add optional "type" for system messages
   const [inputMessage, setInputMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement | null>(null); // Ref for scrolling
+  // const [isGuessed, setIsGuessed] = useState(false); // Track if the current user has guessed the word
 
   useEffect(() => {
     const socket = getSocket();
@@ -48,10 +64,22 @@ const Chat = () => {
         ]);
       });
 
+      socket.on("word-guessed", (data: IUser) => {
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          {
+            sender: "System",
+            text: `${data.name} has guessed the word!`,
+            type: "system",
+          },
+        ]);
+      });
+
       return () => {
         socket.off("receive");
         socket.off("joined");
         socket.off("left");
+        socket.off("word-guessed");
       };
     }
   }, []);
@@ -65,20 +93,69 @@ const Chat = () => {
 
   const handleSendMessage = () => {
     const socket = getSocket();
+    const trimmedMessage = inputMessage.trim();
+    const isExactMatch = trimmedMessage.toLowerCase() === word.toLowerCase();
+    // Calculate the similarity percentage between input and the target word
+    const similarityPercentage = stringSimilarity(trimmedMessage, word) * 100;
+    const isSimilar = similarityPercentage > 70;
 
-    if (socket && inputMessage.trim() !== "") {
+    if (socket && inputMessage.trim() !== "" && !isGuessed) {
+      if (!isExactMatch) {
+        // Emit message to the server
+        socket.emit("send", {
+          user: member.name,
+          room: member.room,
+          message: inputMessage,
+        });
+      }
+
+      // Determine the message type (correct, similar, or regular)
+      let messageType: string | undefined = undefined;
+      if (isExactMatch) {
+        if (!isGuessed) {
+          // If the word is guessed for the first time, emit "word-guessed" event
+          socket.emit("word-guessed", member);
+
+          // Set `isGuessed` to true to prevent further correct guesses
+          setIsGuessed(true);
+
+          messageType = "correct";
+        }
+      } else if (isSimilar) {
+        messageType = "similar";
+      }
+
+      // Update local messages with the appropriate type
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        {
+          sender: "You",
+          text: inputMessage,
+          type: messageType, // Use "correct" for exact matches, "similar" for similar ones
+        },
+      ]);
+    } else if (socket && inputMessage.trim() !== "" && isGuessed) {
+      // Prevent user from sending the correct word again
+      // Emit message to the server
       socket.emit("send", {
         user: member.name,
         room: member.room,
-        message: inputMessage,
+        message:
+          isExactMatch || isSimilar
+            ? inputMessage.replace(/./g, "*")
+            : inputMessage,
       });
-
+      // Update local messages with the appropriate type
       setMessages((prevMessages) => [
         ...prevMessages,
-        { sender: "You", text: inputMessage },
+        {
+          sender: "You",
+          text: inputMessage,
+          type: "regular", // Use "correct" for exact matches, "similar" for similar ones
+        },
       ]);
-      setInputMessage("");
     }
+    setInputMessage("");
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -118,7 +195,11 @@ const Chat = () => {
               <div
                 className={`rounded-lg p-3 text-sm max-w-xs text-[#000] ${
                   msg.type === "system"
-                    ? "bg-gray-300 text-gray-600" // Style for system messages
+                    ? "bg-[#d1d5db] text-[#4b5563]" // Style for system messages
+                    : msg.type === "correct"
+                    ? "bg-[#22c55e] text-[#FFF]" // Green background for exact match
+                    : msg.type === "similar"
+                    ? "bg-[#86efac]" // Light green background for similar matches (>70% similarity)
                     : msg.sender === "You"
                     ? "bg-theme-yellow"
                     : "bg-[#e5e7eb]"

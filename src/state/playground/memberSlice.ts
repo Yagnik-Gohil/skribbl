@@ -28,10 +28,14 @@ const memberSlice = createSlice({
       state.admin = action.payload.admin;
       state.name = action.payload.name;
       state.emoji = action.payload.emoji;
+      state.score = action.payload.score;
     },
+    makeAdmin: (state) => {
+      state.admin = true;
+    }
   },
 });
 
-export const { create } = memberSlice.actions;
+export const { create, makeAdmin } = memberSlice.actions;
 
 export default memberSlice.reducer;
