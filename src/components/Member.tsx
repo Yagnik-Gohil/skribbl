@@ -15,7 +15,7 @@ const Member = ({
       key={member.id}
     >
       <div className="flex items-center gap-1">
-        <GetProfile emoji={member.emoji} className={"text-5xl p-1"} />
+        <GetProfile emoji={member.emoji} className={"text-4xl p-1"} />
         <p>
           {member.name} {member.admin ? "👑" : ""}
           {isCurrentTurn ? "🖍️" : ""}

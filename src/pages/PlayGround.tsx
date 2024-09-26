@@ -11,20 +11,22 @@ import MemberList from "../components/MemberList";
 import SelectWord from "../components/SelectWord";
 import { IJoined, ILeft, IUser, IWordSelected, IWordSelection } from "../types";
 import Word from "../components/Word";
+import Timer from "../components/Timer";
 import { makeAdmin } from "../state/playground/memberSlice";
+import LeaderBoard from "../components/LeaderBoard";
 
 const PlayGround = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const member = useSelector((state: RootState) => state.member);
   const [memberList, setMemberList] = useState([member]);
-  const [isGameStarted, setIsGameStarted] = useState(false);
+  const [isRoundStarted, setIsRoundStarted] = useState(false);
   const [isSelectingWord, setIsSelectingWord] = useState(false);
+  const [isShowLeaderBoard, setIsShowLeaderBoard] = useState(false);
   const [isSocketConnected, setIsSocketConnected] = useState(false);
   const [word, setWord] = useState("Random Word");
-  const [isGuessed, setIsGuessed] = useState(false);
+  const [wordCount, setWordCount] = useState(2);
   const [hintIndex, setHintIndex] = useState([]);
-  const [wordList, setWordList] = useState<string[]>([]);
   const [currentTurn, setCurrentTurn] = useState<IUser>({
     admin: false,
     emoji: "",
@@ -34,9 +36,10 @@ const PlayGround = () => {
     score: 0,
   });
 
+  const [isGuessed, setIsGuessed] = useState(false);
   const [currentRound, setCurrentRound] = useState(0);
   const [rounds, setRounds] = useState(3);
-  const [timer, setTimer] = useState(60);
+  const [drawTime, setDrawTime] = useState(60);
 
   useEffect(() => {
     if (!member.room) {
@@ -57,43 +60,43 @@ const PlayGround = () => {
         setCurrentTurn(data.currentTurn);
         setRounds(data.gameState.rounds);
         setCurrentRound(data.gameState.currentRound);
-        setTimer(data.gameState.drawTime);
+        setDrawTime(data.gameState.drawTime);
         setWord(data.gameState.word);
 
         if (data.gameState.status == "lobby") {
           setIsSelectingWord(false);
-          setIsGameStarted(false);
+          setIsRoundStarted(false);
         } else if (data.gameState.status == "word-selection") {
           setIsSelectingWord(true);
-          setIsGameStarted(false);
+          setIsRoundStarted(false);
         } else {
           setIsSelectingWord(false);
-          setIsGameStarted(true);
+          setIsRoundStarted(true);
         }
       });
 
       socket.on("word-selection", (data: IWordSelection) => {
-        setWordList(data.list);
         setCurrentTurn(data.currentTurn);
+        setWordCount(data.gameState.wordCount);
         setRounds(data.gameState.rounds);
         setCurrentRound(data.gameState.currentRound);
-        setTimer(data.gameState.drawTime);
+        setDrawTime(data.gameState.drawTime);
 
         setIsSelectingWord(true);
       });
 
       socket.on("game-started", (data: IWordSelected) => {
-        setIsGameStarted(true);
+        setIsRoundStarted(true);
         setIsSelectingWord(false);
         setWord(data.word);
       });
 
       // Listen for "left" event and add a system message to the chat
       socket.on("left", (data: ILeft) => {
-        console.log(data)
+        console.log(data);
 
         const admin = data.members.find((member) => member.admin);
-        if(admin && admin.id && member.id == admin.id && !member.admin) {
+        if (admin && admin.id && member.id == admin.id && !member.admin) {
           // Make current user to admin.
           dispatch(makeAdmin());
         }
@@ -107,6 +110,7 @@ const PlayGround = () => {
         socket.off("word-selection");
         socket.off("game-started");
         socket.off("left");
+        disconnectSocket(); // Disconnect the socket on unmount
       };
     }
   }, [navigate]);
@@ -115,19 +119,32 @@ const PlayGround = () => {
     const socket = getSocket();
     if (socket) {
       socket.emit("leave", member); // Emit the leave event
-      disconnectSocket()
+      disconnectSocket();
     }
     navigate("/");
   };
+
+  console.log(
+    "\nisSocketConnected",
+    isSocketConnected,
+    "\nisSelectingWord",
+    isSelectingWord,
+    "\nisRoundStarted",
+    isRoundStarted,
+    "\nisShowLeaderBoard",
+    isShowLeaderBoard
+  );
 
   return (
     <div className="h-dvh w-dvw flex items-center justify-center text-[#000]">
       <div className="container flex flex-col h-[90%] gap-1">
         <div className="flex justify-between items-center bg-[#FFF] rounded-lg px-3 py-2">
-          <p>
-            <span className="text-3xl">⏱️:</span>{" "}
-            <span className="text-3xl font-bold">{timer}</span>
-          </p>
+          <Timer
+            drawTime={drawTime}
+            isRoundStarted={isRoundStarted}
+            setIsShowLeaderBoard={setIsShowLeaderBoard}
+            setIsRoundStarted={setIsRoundStarted}
+          />
           <p>
             Round {currentRound} of {rounds}
           </p>
@@ -164,27 +181,45 @@ const PlayGround = () => {
         </div>
         <div className="flex justify-between h-full border border-[#000] bg-[#FFF] rounded-lg">
           <div className="w-[20%]">
-            {isSocketConnected && <MemberList memberList={memberList} currentTurn={currentTurn} />}
+            {isSocketConnected && (
+              <MemberList memberList={memberList} currentTurn={currentTurn} />
+            )}
           </div>
           <div className="w-[60%] border-x border-[#000]">
-            {isSocketConnected && !isGameStarted && !isSelectingWord && (
-              <Configuration member={member} />
-            )}
             {isSocketConnected &&
-              !isGameStarted &&
+              !isSelectingWord &&
+              !isRoundStarted &&
+              !isShowLeaderBoard && <Configuration member={member} />}
+            {isSocketConnected &&
               isSelectingWord &&
+              !isRoundStarted &&
+              !isShowLeaderBoard &&
               currentTurn && (
                 <SelectWord
                   member={member}
                   currentTurn={currentTurn}
-                  wordList={wordList}
+                  wordCount={wordCount}
                 />
               )}
-            {isSocketConnected && isGameStarted && !isSelectingWord && (
-              <Canvas />
+            {isSocketConnected &&
+              !isSelectingWord &&
+              isRoundStarted &&
+              !isShowLeaderBoard && <Canvas />}
+            {isSocketConnected &&
+              !isSelectingWord &&
+              !isRoundStarted &&
+              isShowLeaderBoard && <LeaderBoard />}
+          </div>
+          <div className="w-[20%]">
+            {isSocketConnected && (
+              <Chat
+                member={member}
+                word={word}
+                isGuessed={isGuessed}
+                setIsGuessed={setIsGuessed}
+              />
             )}
           </div>
-          <div className="w-[20%]">{isSocketConnected && <Chat member={member} word={word} isGuessed={isGuessed} setIsGuessed={setIsGuessed}/>}</div>
         </div>
         <div className="flex justify-between rounded-lg">
           <Button

@@ -52,3 +52,9 @@ export interface ILeft {
   gameState: IGameState;
   currentTurn: IUser;
 }
+
+export interface IDatabase {
+  "1": string[];
+  "2": string[];
+  "3": string[];
+}

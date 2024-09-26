@@ -1,17 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Button from "./Button";
 import { getSocket } from "../services/socket";
 import { IUser } from "../types";
+import getWordList from "../helpers/getWordList";
 
 const SelectWord = ({
   member,
   currentTurn,
-  wordList,
+  wordCount,
 }: {
   member: IUser;
   currentTurn: IUser;
-  wordList: string[];
+  wordCount: number;
 }) => {
+  const wordList = getWordList(wordCount);
+
   const handleSelectWord = (e) => {
     const socket = getSocket();
 
@@ -25,6 +28,7 @@ const SelectWord = ({
 
   return (
     <div className="h-full flex flex-col items-center justify-center text-lg">
+      {member.id !== currentTurn?.id && <p className="text-5xl select-none">⏳</p>}
       <div className="w-full max-w-md flex justify-between">
         {member.id == currentTurn?.id ? (
           wordList.map((word, index) => (
@@ -36,7 +40,7 @@ const SelectWord = ({
             />
           ))
         ) : (
-          <p className="text-center mx-auto">
+          <p className="text-center mx-auto select-none mt-2">
             {currentTurn?.name} is choosing the word
           </p>
         )}
