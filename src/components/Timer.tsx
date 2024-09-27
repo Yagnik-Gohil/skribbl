@@ -3,13 +3,9 @@ import React, { useEffect, useState } from "react";
 const Timer = ({
   drawTime,
   isRoundStarted,
-  setIsShowLeaderBoard,
-  setIsRoundStarted,
 }: {
   drawTime: number;
   isRoundStarted: boolean;
-  setIsShowLeaderBoard: React.Dispatch<React.SetStateAction<boolean>>;
-  setIsRoundStarted: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const [timer, setTimer] = useState(drawTime);
 
@@ -20,11 +16,12 @@ const Timer = ({
     if (isRoundStarted) {
       countdown = setInterval(() => {
         setTimer((prev) => {
-          if (prev <= 1) {
-            clearInterval(countdown!);
+          if (prev > 0) {
+            return prev - 1;
+          } else {
+            clearInterval(countdown); // Stop the timer when it reaches 0
             return 0;
           }
-          return prev - 1;
         });
       }, 1000);
     }
@@ -43,14 +40,6 @@ const Timer = ({
       setTimer(drawTime);
     }
   }, [drawTime, isRoundStarted]);
-
-  // Trigger the leaderboard when the timer reaches 0
-  useEffect(() => {
-    if (timer === 0) {
-      setIsShowLeaderBoard(true); // Trigger parent state change after rendering
-      setIsRoundStarted(false);
-    }
-  }, [timer, setIsShowLeaderBoard]);
 
   return (
     <p>

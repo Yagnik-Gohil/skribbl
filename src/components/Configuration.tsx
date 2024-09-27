@@ -95,7 +95,7 @@ const Configuration = ({ member }: { member: IUser }) => {
             className="ml-4 p-1 rounded bg-theme-yellow"
             disabled={!member.admin}
           >
-            {[60, 70, 80, 90, 100, 110, 120].map((time) => (
+            {[10, 60, 70, 80, 90, 100, 110, 120].map((time) => (
               <option key={time} value={time}>
                 {time} Seconds
               </option>

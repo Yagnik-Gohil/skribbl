@@ -2,47 +2,17 @@ import React, { useEffect, useState } from "react";
 import { ILeaderBoard, IUser } from "../types";
 import GetProfile from "./GetProfile";
 
-const LeaderBoard = ({
+const Result = ({
   currentUser,
   leaderBoard,
 }: {
   currentUser: IUser;
-  leaderBoard: ILeaderBoard[];
+  leaderBoard: IUser[];
 }) => {
-  const [timeLeft, setTimeLeft] = useState(10); // Countdown starts from 10 seconds
-  const [progress, setProgress] = useState(100); // Progress bar starts at 100%
-
-  // Countdown logic
-  useEffect(() => {
-    const countdown = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev > 0) {
-          return prev - 1;
-        } else {
-          clearInterval(countdown);
-          return 0;
-        }
-      });
-    }, 1000);
-
-    return () => clearInterval(countdown);
-  }, []);
-
-  // Emit "next-round" event when countdown reaches 0
-  useEffect(() => {
-    setProgress((timeLeft / 10) * 100);
-  }, [timeLeft]);
-
   return (
     <div className="bg-theme-yellow h-full flex items-center justify-center text-lg">
       <div className="rounded bg-[#FFF] text-center p-2">
-        <p className="text-xl pb-1">Leaderboard</p>
-        <div className="w-[full] bg-theme-yellow h-1 rounded">
-          <div
-            className="bg-theme-red h-1 rounded transition-all duration-1000 ease-linear"
-            style={{ width: `${progress}%` }}
-          ></div>
-        </div>
+        <p className="text-xl pb-1">Result</p>
         {leaderBoard.map((member, index) => (
           <div
             className={"flex items-center p-1 justify-between pr-4"}
@@ -73,4 +43,4 @@ const LeaderBoard = ({
   );
 };
 
-export default LeaderBoard;
+export default Result;

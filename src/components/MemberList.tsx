@@ -3,9 +3,11 @@ import Member from "./Member";
 import { IUser } from "../types";
 
 const MemberList = ({
+  currentUser,
   memberList,
   currentTurn,
 }: {
+  currentUser: IUser;
   memberList: IUser[];
   currentTurn: IUser;
 }) => {
@@ -14,6 +16,7 @@ const MemberList = ({
       <div className="flex flex-col gap-2 p-2 overflow-y-auto max-h-[670px]">
         {memberList.map((member) => (
           <Member
+            isMe={currentUser.id == member.id}
             key={member.id}
             member={member}
             isCurrentTurn={member.id == currentTurn.id}

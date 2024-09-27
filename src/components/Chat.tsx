@@ -28,6 +28,11 @@ const Chat = ({
   const messagesEndRef = useRef<HTMLDivElement | null>(null); // Ref for scrolling
   // const [isGuessed, setIsGuessed] = useState(false); // Track if the current user has guessed the word
 
+
+  useEffect(() => {
+    setIsGuessed(false);
+  }, [word])
+
   useEffect(() => {
     const socket = getSocket();
 

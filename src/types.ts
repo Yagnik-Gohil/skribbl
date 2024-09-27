@@ -36,7 +36,7 @@ export interface IGameState {
 export interface IWordSelection {
   currentTurn: IUser;
   gameState: IGameState;
-  list: string[];
+  roomMembers: IUser[];
 }
 
 export interface IJoined {
@@ -57,4 +57,16 @@ export interface IDatabase {
   "1": string[];
   "2": string[];
   "3": string[];
+}
+
+export interface ILeaderBoard {
+  id: string;
+  name: string;
+  score: number;
+  emoji: string;
+}
+
+export interface ITimeUp {
+  leaderBoard: ILeaderBoard[];
+  roomMembers: IUser[]
 }

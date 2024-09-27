@@ -9,21 +9,33 @@ import Button from "../components/Button";
 import { connectSocket, disconnectSocket, getSocket } from "../services/socket";
 import MemberList from "../components/MemberList";
 import SelectWord from "../components/SelectWord";
-import { IJoined, ILeft, IUser, IWordSelected, IWordSelection } from "../types";
+import {
+  IJoined,
+  ILeaderBoard,
+  ILeft,
+  IUser,
+  IWordSelected,
+  IWordSelection,
+} from "../types";
 import Word from "../components/Word";
 import Timer from "../components/Timer";
 import { makeAdmin } from "../state/playground/memberSlice";
 import LeaderBoard from "../components/LeaderBoard";
+import Result from "../components/Result";
 
 const PlayGround = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const member = useSelector((state: RootState) => state.member);
   const [memberList, setMemberList] = useState([member]);
-  const [isRoundStarted, setIsRoundStarted] = useState(false);
-  const [isSelectingWord, setIsSelectingWord] = useState(false);
-  const [isShowLeaderBoard, setIsShowLeaderBoard] = useState(false);
+
   const [isSocketConnected, setIsSocketConnected] = useState(false);
+  const [isShowConfiguration, setIsShowConfiguration] = useState(true);
+  const [isSelectingWord, setIsSelectingWord] = useState(false);
+  const [isRoundStarted, setIsRoundStarted] = useState(false);
+  const [isShowLeaderBoard, setIsShowLeaderBoard] = useState(false);
+  const [isShowResult, setIsShowResult] = useState(false);
+
   const [word, setWord] = useState("Random Word");
   const [wordCount, setWordCount] = useState(2);
   const [hintIndex, setHintIndex] = useState([]);
@@ -40,6 +52,8 @@ const PlayGround = () => {
   const [currentRound, setCurrentRound] = useState(0);
   const [rounds, setRounds] = useState(3);
   const [drawTime, setDrawTime] = useState(60);
+
+  const [leaderBoard, setLeaderBoard] = useState<ILeaderBoard[]>([]);
 
   useEffect(() => {
     if (!member.room) {
@@ -64,31 +78,69 @@ const PlayGround = () => {
         setWord(data.gameState.word);
 
         if (data.gameState.status == "lobby") {
+          setIsShowConfiguration(true);
           setIsSelectingWord(false);
           setIsRoundStarted(false);
+          setIsShowLeaderBoard(false);
+          setIsShowResult(false);
         } else if (data.gameState.status == "word-selection") {
+          setIsShowConfiguration(false);
           setIsSelectingWord(true);
           setIsRoundStarted(false);
+          setIsShowLeaderBoard(false);
+          setIsShowResult(false);
         } else {
+          setIsShowConfiguration(false);
           setIsSelectingWord(false);
           setIsRoundStarted(true);
+          setIsShowLeaderBoard(false); // manage this
+          setIsShowResult(false); // manage this
         }
       });
 
       socket.on("word-selection", (data: IWordSelection) => {
         setCurrentTurn(data.currentTurn);
+        setMemberList(data.roomMembers);
         setWordCount(data.gameState.wordCount);
         setRounds(data.gameState.rounds);
         setCurrentRound(data.gameState.currentRound);
-        setDrawTime(data.gameState.drawTime);
+        setDrawTime(data.gameState.drawTime - 1);
 
+        setIsShowConfiguration(false);
         setIsSelectingWord(true);
+        setIsRoundStarted(false);
+        setIsShowLeaderBoard(false);
+        setIsShowResult(false);
       });
 
       socket.on("game-started", (data: IWordSelected) => {
-        setIsRoundStarted(true);
-        setIsSelectingWord(false);
         setWord(data.word);
+
+        setIsShowConfiguration(false);
+        setIsSelectingWord(false);
+        setIsRoundStarted(true);
+        setIsShowLeaderBoard(false);
+        setIsShowResult(false);
+      });
+
+      socket.on("leader-board", (data: ILeaderBoard[]) => {
+        setLeaderBoard(data);
+        
+        setIsShowConfiguration(false);
+        setIsSelectingWord(false);
+        setIsRoundStarted(false);
+        setIsShowLeaderBoard(true);
+        setIsShowResult(false);
+      });
+
+      socket.on("result", (data: IUser[]) => {
+        setMemberList(data);
+        
+        setIsShowConfiguration(false);
+        setIsSelectingWord(false);
+        setIsRoundStarted(false);
+        setIsShowLeaderBoard(false);
+        setIsShowResult(true);
       });
 
       // Listen for "left" event and add a system message to the chat
@@ -109,6 +161,8 @@ const PlayGround = () => {
         socket.off("joined");
         socket.off("word-selection");
         socket.off("game-started");
+        socket.off("leader-board");
+        socket.off("result");
         socket.off("left");
         disconnectSocket(); // Disconnect the socket on unmount
       };
@@ -139,12 +193,7 @@ const PlayGround = () => {
     <div className="h-dvh w-dvw flex items-center justify-center text-[#000]">
       <div className="container flex flex-col h-[90%] gap-1">
         <div className="flex justify-between items-center bg-[#FFF] rounded-lg px-3 py-2">
-          <Timer
-            drawTime={drawTime}
-            isRoundStarted={isRoundStarted}
-            setIsShowLeaderBoard={setIsShowLeaderBoard}
-            setIsRoundStarted={setIsRoundStarted}
-          />
+          <Timer drawTime={drawTime} isRoundStarted={isRoundStarted} />
           <p>
             Round {currentRound} of {rounds}
           </p>
@@ -182,33 +231,31 @@ const PlayGround = () => {
         <div className="flex justify-between h-full border border-[#000] bg-[#FFF] rounded-lg">
           <div className="w-[20%]">
             {isSocketConnected && (
-              <MemberList memberList={memberList} currentTurn={currentTurn} />
+              <MemberList
+                currentUser={member}
+                memberList={memberList}
+                currentTurn={currentTurn}
+              />
             )}
           </div>
           <div className="w-[60%] border-x border-[#000]">
-            {isSocketConnected &&
-              !isSelectingWord &&
-              !isRoundStarted &&
-              !isShowLeaderBoard && <Configuration member={member} />}
-            {isSocketConnected &&
-              isSelectingWord &&
-              !isRoundStarted &&
-              !isShowLeaderBoard &&
-              currentTurn && (
-                <SelectWord
-                  member={member}
-                  currentTurn={currentTurn}
-                  wordCount={wordCount}
-                />
-              )}
-            {isSocketConnected &&
-              !isSelectingWord &&
-              isRoundStarted &&
-              !isShowLeaderBoard && <Canvas />}
-            {isSocketConnected &&
-              !isSelectingWord &&
-              !isRoundStarted &&
-              isShowLeaderBoard && <LeaderBoard />}
+            {isSocketConnected && isShowConfiguration && (
+              <Configuration member={member} />
+            )}
+            {isSocketConnected && isSelectingWord && (
+              <SelectWord
+                member={member}
+                currentTurn={currentTurn}
+                wordCount={wordCount}
+              />
+            )}
+            {isSocketConnected && isRoundStarted && <Canvas />}
+            {isSocketConnected && isShowLeaderBoard && (
+              <LeaderBoard currentUser={member} leaderBoard={leaderBoard} />
+            )}
+            {isSocketConnected && isShowResult && (
+              <Result currentUser={member} leaderBoard={memberList} />
+            )}
           </div>
           <div className="w-[20%]">
             {isSocketConnected && (

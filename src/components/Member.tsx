@@ -3,9 +3,11 @@ import GetProfile from "./GetProfile";
 import { IUser } from "../types";
 
 const Member = ({
+  isMe,
   member,
   isCurrentTurn
 }: {
+  isMe: boolean;
   member: IUser;
   isCurrentTurn: boolean
 }) => {
@@ -17,8 +19,9 @@ const Member = ({
       <div className="flex items-center gap-1">
         <GetProfile emoji={member.emoji} className={"text-4xl p-1"} />
         <p>
-          {member.name} {member.admin ? "👑" : ""}
-          {isCurrentTurn ? "🖍️" : ""}
+          {member.name} {member.admin ? " 👑 " : ""}
+          {isCurrentTurn ? " 🖍️ " : ""}
+          {isMe ? " (Me) " : ""}
         </p>
       </div>
 
