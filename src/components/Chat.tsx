@@ -225,7 +225,7 @@ const Chat = ({
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           placeholder="Guess the word..."
-          className="w-full p-2 border rounded-md outline-none"
+          className="w-full p-2  rounded-md outline-none"
         />
         <Button
           name="Send"

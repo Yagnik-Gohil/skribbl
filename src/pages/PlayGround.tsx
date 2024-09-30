@@ -227,6 +227,11 @@ const PlayGround = () => {
             Room ID: <span className="font-bold">{member.room}</span>
           </p>
           <Button name="⚙️" className="text-3xl select-none"></Button>
+          <Button
+            name="Leave"
+            onClick={handleLeaveRoom}
+            className="bg-theme-yellow p-2 rounded-md"
+          />
         </div>
         <div className="flex justify-between h-full border border-[#000] bg-[#FFF] rounded-lg">
           <div className="w-[20%]">
@@ -249,7 +254,7 @@ const PlayGround = () => {
                 wordCount={wordCount}
               />
             )}
-            {isSocketConnected && isRoundStarted && <Canvas />}
+            {isSocketConnected && isRoundStarted && <Canvas room={member.room} disabled={member.id !== currentTurn.id}/>}
             {isSocketConnected && isShowLeaderBoard && (
               <LeaderBoard currentUser={member} leaderBoard={leaderBoard} />
             )}
@@ -268,16 +273,7 @@ const PlayGround = () => {
             )}
           </div>
         </div>
-        <div className="flex justify-between rounded-lg">
-          <Button
-            name="Leave Room"
-            onClick={handleLeaveRoom}
-            className="bg-theme-yellow"
-          />
-          <div className="bg-theme-yellow">Color Selection</div>
-          <div className="bg-theme-yellow">Eraser</div>
-          <div className="bg-theme-yellow">Clear Screen</div>
-        </div>
+        
       </div>
     </div>
   );
