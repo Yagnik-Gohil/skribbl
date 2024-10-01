@@ -63,7 +63,13 @@ const LeaderBoard = ({
               </p>
             </div>
 
-            <span className="inline-flex items-center rounded-md bg-[#f0fdf4] ml-4 px-2 py-1 text-xs font-medium text-[#15803d] ring-1 ring-inset ring-[#16a34a]/20">
+            <span
+              className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ml-2 ${
+                member.score >= 0
+                  ? "text-[#15803d] bg-[#f0fdf4] ring-[#16a34a]/20"
+                  : "text-theme-red bg-[#fdf0f0] ring-[#7f1d1d]/20"
+              }`}
+            >
               {member.score}
             </span>
           </div>

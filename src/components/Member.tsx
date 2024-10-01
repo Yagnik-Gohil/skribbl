@@ -5,15 +5,17 @@ import { IUser } from "../types";
 const Member = ({
   isMe,
   member,
-  isCurrentTurn
+  isCurrentTurn,
 }: {
   isMe: boolean;
   member: IUser;
-  isCurrentTurn: boolean
+  isCurrentTurn: boolean;
 }) => {
   return (
     <div
-      className={"flex items-center border rounded p-1 justify-between pr-4 bg-[#FFF]"}
+      className={
+        "flex items-center border rounded p-1 justify-between pr-4 bg-[#FFF]"
+      }
       key={member.id}
     >
       <div className="flex items-center gap-1">
@@ -25,7 +27,13 @@ const Member = ({
         </p>
       </div>
 
-      <span className="inline-flex items-center rounded-md bg-[#f0fdf4] px-2 py-1 text-xs font-medium text-[#15803d] ring-1 ring-inset ring-[#16a34a]/20">
+      <span
+        className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${
+          member.score >= 0
+            ? "text-[#15803d] bg-[#f0fdf4] ring-[#16a34a]/20"
+            : "text-theme-red bg-[#fdf0f0] ring-[#7f1d1d]/20"
+        }`}
+      >
         {member.score}
       </span>
     </div>

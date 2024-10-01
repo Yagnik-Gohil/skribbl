@@ -22,6 +22,9 @@ import Timer from "../components/Timer";
 import { makeAdmin } from "../state/playground/memberSlice";
 import LeaderBoard from "../components/LeaderBoard";
 import Result from "../components/Result";
+import joinSound from "../assets/join.mp3";
+import leaveSound from "../assets/leave.mp3";
+import resultSound from "../assets/result.mp3";
 
 const PlayGround = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -35,10 +38,11 @@ const PlayGround = () => {
   const [isRoundStarted, setIsRoundStarted] = useState(false);
   const [isShowLeaderBoard, setIsShowLeaderBoard] = useState(false);
   const [isShowResult, setIsShowResult] = useState(false);
+  const [isReacted, setIsReacted] = useState(false);
 
   const [word, setWord] = useState("Random Word");
   const [wordCount, setWordCount] = useState(2);
-  const [hintIndex, setHintIndex] = useState([]);
+  const [hints, setHints] = useState(0);
   const [currentTurn, setCurrentTurn] = useState<IUser>({
     admin: false,
     emoji: "",
@@ -70,12 +74,19 @@ const PlayGround = () => {
       socket.emit("join", member);
 
       socket.on("joined", (data: IJoined) => {
+        // Play the sound
+        const audio = new Audio(joinSound);
+        audio
+          .play()
+          .catch((error) => console.error("Audio playback failed:", error));
+
         setMemberList(data.members);
         setCurrentTurn(data.currentTurn);
         setRounds(data.gameState.rounds);
         setCurrentRound(data.gameState.currentRound);
-        setDrawTime(data.gameState.drawTime);
+        setDrawTime(data.gameState.drawTime - 1);
         setWord(data.gameState.word);
+        setHints(data.gameState.hints);
 
         if (data.gameState.status == "lobby") {
           setIsShowConfiguration(true);
@@ -98,6 +109,11 @@ const PlayGround = () => {
         }
       });
 
+      socket.on("restart", () => {
+        setIsShowResult(false);
+        setIsShowConfiguration(true);
+      });
+
       socket.on("word-selection", (data: IWordSelection) => {
         setCurrentTurn(data.currentTurn);
         setMemberList(data.roomMembers);
@@ -105,6 +121,7 @@ const PlayGround = () => {
         setRounds(data.gameState.rounds);
         setCurrentRound(data.gameState.currentRound);
         setDrawTime(data.gameState.drawTime - 1);
+        setHints(data.gameState.hints);
 
         setIsShowConfiguration(false);
         setIsSelectingWord(true);
@@ -121,32 +138,43 @@ const PlayGround = () => {
         setIsRoundStarted(true);
         setIsShowLeaderBoard(false);
         setIsShowResult(false);
+        setIsReacted(false);
       });
 
       socket.on("leader-board", (data: ILeaderBoard[]) => {
         setLeaderBoard(data);
-        
+
         setIsShowConfiguration(false);
         setIsSelectingWord(false);
         setIsRoundStarted(false);
         setIsShowLeaderBoard(true);
         setIsShowResult(false);
+        setIsGuessed(true);
+
+        // Play the sound
+        const audio = new Audio(resultSound);
+        audio
+          .play()
+          .catch((error) => console.error("Audio playback failed:", error));
       });
 
       socket.on("result", (data: IUser[]) => {
         setMemberList(data);
-        
+
         setIsShowConfiguration(false);
         setIsSelectingWord(false);
         setIsRoundStarted(false);
         setIsShowLeaderBoard(false);
         setIsShowResult(true);
+        // Play the sound
+        const audio = new Audio(resultSound);
+        audio
+          .play()
+          .catch((error) => console.error("Audio playback failed:", error));
       });
 
       // Listen for "left" event and add a system message to the chat
       socket.on("left", (data: ILeft) => {
-        console.log(data);
-
         const admin = data.members.find((member) => member.admin);
         if (admin && admin.id && member.id == admin.id && !member.admin) {
           // Make current user to admin.
@@ -155,10 +183,17 @@ const PlayGround = () => {
 
         setMemberList(data.members);
         setCurrentTurn(data.currentTurn);
+
+        // Play the sound
+        const audio = new Audio(leaveSound);
+        audio
+          .play()
+          .catch((error) => console.error("Audio playback failed:", error));
       });
 
       return () => {
         socket.off("joined");
+        socket.off("restart");
         socket.off("word-selection");
         socket.off("game-started");
         socket.off("leader-board");
@@ -178,16 +213,17 @@ const PlayGround = () => {
     navigate("/");
   };
 
-  console.log(
-    "\nisSocketConnected",
-    isSocketConnected,
-    "\nisSelectingWord",
-    isSelectingWord,
-    "\nisRoundStarted",
-    isRoundStarted,
-    "\nisShowLeaderBoard",
-    isShowLeaderBoard
-  );
+  const handleLike = (e) => {
+    const socket = getSocket();
+    if (socket && !isReacted) {
+      socket.emit("like", {
+        isLiked: e.target.name == "👍" ? true : false,
+        user: member,
+        currentTurn: currentTurn,
+      });
+      setIsReacted(true);
+    }
+  };
 
   return (
     <div className="h-dvh w-dvw flex items-center justify-center text-[#000]">
@@ -203,7 +239,9 @@ const PlayGround = () => {
               <Word
                 word={word}
                 isGuessed={member.id == currentTurn.id || isGuessed}
-                hints={hintIndex}
+                hints={hints}
+                drawTime={drawTime - 10}
+                isRoundStarted={isRoundStarted}
               />
               <span className="ml-2 text-sm font-normal">
                 {word
@@ -216,11 +254,19 @@ const PlayGround = () => {
           <div className="flex gap-3">
             <Button
               name="👍"
-              className="bg-[#16a34a] w-10 h-10 rounded-full flex items-center justify-center select-none"
+              className={`w-10 h-10 rounded-full flex items-center justify-center select-none ${
+                isReacted ? "bg-[#4b5563]" : "bg-[#16a34a]"
+              }`}
+              onClick={handleLike}
+              disabled={isReacted}
             />
             <Button
               name="👎"
-              className="bg-theme-red w-10 h-10 rounded-full flex items-center justify-center select-none"
+              className={`w-10 h-10 rounded-full flex items-center justify-center select-none ${
+                isReacted ? "bg-[#4b5563]" : "bg-theme-red"
+              }`}
+              onClick={handleLike}
+              disabled={isReacted}
             />
           </div>
           <p>
@@ -254,12 +300,21 @@ const PlayGround = () => {
                 wordCount={wordCount}
               />
             )}
-            {isSocketConnected && isRoundStarted && <Canvas room={member.room} disabled={member.id !== currentTurn.id}/>}
+            {isSocketConnected && isRoundStarted && (
+              <Canvas
+                room={member.room}
+                disabled={member.id !== currentTurn.id}
+              />
+            )}
             {isSocketConnected && isShowLeaderBoard && (
               <LeaderBoard currentUser={member} leaderBoard={leaderBoard} />
             )}
             {isSocketConnected && isShowResult && (
-              <Result currentUser={member} leaderBoard={memberList} />
+              <Result
+                currentUser={member}
+                leaderBoard={memberList}
+                member={member}
+              />
             )}
           </div>
           <div className="w-[20%]">
@@ -273,7 +328,6 @@ const PlayGround = () => {
             )}
           </div>
         </div>
-        
       </div>
     </div>
   );

@@ -9,6 +9,7 @@ import { stringSimilarity } from "string-similarity-js";
 import { getSocket } from "../services/socket";
 import Button from "./Button";
 import { IUser } from "../types";
+import correctAnswerSound from "../assets/correct-answer.mp3";
 
 const Chat = ({
   member,
@@ -28,10 +29,9 @@ const Chat = ({
   const messagesEndRef = useRef<HTMLDivElement | null>(null); // Ref for scrolling
   // const [isGuessed, setIsGuessed] = useState(false); // Track if the current user has guessed the word
 
-
   useEffect(() => {
     setIsGuessed(false);
-  }, [word])
+  }, [word]);
 
   useEffect(() => {
     const socket = getSocket();
@@ -78,6 +78,9 @@ const Chat = ({
             type: "system",
           },
         ]);
+        // Play the sound
+        const audio = new Audio(correctAnswerSound);
+        audio.play().catch((error) => console.error("Audio playback failed:", error));
       });
 
       return () => {
@@ -200,7 +203,9 @@ const Chat = ({
               <div
                 className={`rounded-lg p-3 text-sm max-w-xs text-[#000] ${
                   msg.type === "system"
-                    ? "bg-[#d1d5db] text-[#4b5563]" // Style for system messages
+                    ? msg.text.includes("guessed the word")
+                      ? "bg-[#22c55e] text-[#FFF]" // Green background for word guessed system message
+                      : "bg-[#d1d5db] text-[#4b5563]" // Gray background for other system messages
                     : msg.type === "correct"
                     ? "bg-[#22c55e] text-[#FFF]" // Green background for exact match
                     : msg.type === "similar"

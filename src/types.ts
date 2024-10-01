@@ -70,3 +70,9 @@ export interface ITimeUp {
   leaderBoard: ILeaderBoard[];
   roomMembers: IUser[]
 }
+
+export interface ILike {
+  isLiked: boolean;
+  currentTurn: IUser;
+  user: IUser;
+}

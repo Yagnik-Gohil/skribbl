@@ -65,7 +65,7 @@ const Canvas = ({ room, disabled }: { room: string, disabled: boolean }) => {
   };
 
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!contextReference.current) return;
+    if (disabled || !contextReference.current) return;
 
     const { offsetX, offsetY } = e.nativeEvent;
     setIsPressed(true);
@@ -77,7 +77,7 @@ const Canvas = ({ room, disabled }: { room: string, disabled: boolean }) => {
   };
 
   const continueDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isPressed || !contextReference.current) return;
+    if (disabled || !isPressed || !contextReference.current) return;
 
     const { offsetX, offsetY } = e.nativeEvent;
     isDot.current = false; // It's not a dot anymore since we've moved
@@ -86,6 +86,7 @@ const Canvas = ({ room, disabled }: { room: string, disabled: boolean }) => {
   };
 
   const stopDrawing = () => {
+    if (disabled || !isPressed) return;
     if (isPressed && isDot.current) {
       // If mouse was pressed and no movement occurred, draw a dot
       const { x, y } = lastPosition.current!;
