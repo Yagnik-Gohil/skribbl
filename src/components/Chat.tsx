@@ -16,11 +16,13 @@ const Chat = ({
   word,
   isGuessed,
   setIsGuessed,
+  disabled,
 }: {
   member: IUser;
   word: string;
   isGuessed: boolean;
   setIsGuessed: Dispatch<SetStateAction<boolean>>;
+  disabled: boolean;
 }) => {
   const [messages, setMessages] = useState<
     { sender: string; text: string; type?: string }[]
@@ -80,7 +82,9 @@ const Chat = ({
         ]);
         // Play the sound
         const audio = new Audio(correctAnswerSound);
-        audio.play().catch((error) => console.error("Audio playback failed:", error));
+        audio
+          .play()
+          .catch((error) => console.error("Audio playback failed:", error));
       });
 
       return () => {
@@ -231,11 +235,13 @@ const Chat = ({
           onKeyDown={handleKeyDown}
           placeholder="Guess the word..."
           className="w-full p-2  rounded-md outline-none"
+          disabled={disabled}
         />
         <Button
           name="Send"
           onClick={handleSendMessage}
           className="ml-3 p-2 text-white rounded-md shadow bg-theme-yellow"
+          disabled={disabled}
         />
       </div>
     </div>

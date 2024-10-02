@@ -78,6 +78,7 @@ const Home = () => {
   const handleName = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
     setName(inputValue);
+    setEmoji(getEmoji());
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -86,22 +87,12 @@ const Home = () => {
     setRoomId(inputValue);
   };
 
-  const changeEmoji = () => {
-    setEmoji(getEmoji());
-  };
-
   return (
     <div className="h-dvh w-dvw flex items-center justify-center">
       <div className="text-center">
         <div className="my-4 flex justify-center items-center flex-col gap-4">
           <div className="flex gap-4 mb-2">
-            <Button
-              name="🔀"
-              className="text-3xl rotate-180"
-              onClick={changeEmoji}
-            />
             <GetProfile emoji={emoji} className={"text-7xl"} />
-            <Button name="🔀" className="text-3xl" onClick={changeEmoji} />
           </div>
           <Input
             placeholder="Name"

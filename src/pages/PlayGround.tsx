@@ -25,6 +25,7 @@ import Result from "../components/Result";
 import joinSound from "../assets/join.mp3";
 import leaveSound from "../assets/leave.mp3";
 import resultSound from "../assets/result.mp3";
+import startSound from "../assets/start.mp3";
 
 const PlayGround = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -131,6 +132,11 @@ const PlayGround = () => {
       });
 
       socket.on("game-started", (data: IWordSelected) => {
+        // Play the sound
+        const audio = new Audio(startSound);
+        audio
+          .play()
+          .catch((error) => console.error("Audio playback failed:", error));
         setWord(data.word);
 
         setIsShowConfiguration(false);
@@ -255,24 +261,23 @@ const PlayGround = () => {
             <Button
               name="👍"
               className={`w-10 h-10 rounded-full flex items-center justify-center select-none ${
-                isReacted ? "bg-[#4b5563]" : "bg-[#16a34a]"
+                (isReacted || member.id == currentTurn.id || !isRoundStarted) ? "bg-[#4b5563]" : "bg-[#16a34a]"
               }`}
               onClick={handleLike}
-              disabled={isReacted}
+              disabled={isReacted || member.id == currentTurn.id || !isRoundStarted}
             />
             <Button
               name="👎"
               className={`w-10 h-10 rounded-full flex items-center justify-center select-none ${
-                isReacted ? "bg-[#4b5563]" : "bg-theme-red"
+                (isReacted || member.id == currentTurn.id || !isRoundStarted) ? "bg-[#4b5563]" : "bg-theme-red"
               }`}
               onClick={handleLike}
-              disabled={isReacted}
+              disabled={isReacted || member.id == currentTurn.id || !isRoundStarted}
             />
           </div>
           <p>
             Room ID: <span className="font-bold">{member.room}</span>
           </p>
-          <Button name="⚙️" className="text-3xl select-none"></Button>
           <Button
             name="Leave"
             onClick={handleLeaveRoom}
@@ -324,6 +329,7 @@ const PlayGround = () => {
                 word={word}
                 isGuessed={isGuessed}
                 setIsGuessed={setIsGuessed}
+                disabled={member.id == currentTurn.id && isRoundStarted}
               />
             )}
           </div>

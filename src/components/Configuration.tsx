@@ -74,7 +74,7 @@ const Configuration = ({ member }: { member: IUser }) => {
             name="rounds"
             value={settings.rounds}
             onChange={handleChange}
-            className="ml-4 p-1 rounded bg-theme-yellow"
+            className="ml-4 p-1 rounded bg-[#FFF]"
             disabled={!member.admin}
           >
             {[1, 2, 3, 4, 5, 10].map((round) => (
@@ -92,7 +92,7 @@ const Configuration = ({ member }: { member: IUser }) => {
             name="drawTime"
             value={settings.drawTime}
             onChange={handleChange}
-            className="ml-4 p-1 rounded bg-theme-yellow"
+            className="ml-4 p-1 rounded bg-[#FFF]"
             disabled={!member.admin}
           >
             {[10, 60, 70, 80, 90, 100, 110, 120].map((time) => (
@@ -110,7 +110,7 @@ const Configuration = ({ member }: { member: IUser }) => {
             name="hints"
             value={settings.hints}
             onChange={handleChange}
-            className="ml-4 p-1 rounded bg-theme-yellow"
+            className="ml-4 p-1 rounded bg-[#FFF]"
             disabled={!member.admin}
           >
             {[0, 1, 2, 3].map((hint) => (
@@ -128,7 +128,7 @@ const Configuration = ({ member }: { member: IUser }) => {
             name="wordCount"
             value={settings.wordCount}
             onChange={handleChange}
-            className="ml-4 p-1 rounded bg-theme-yellow"
+            className="ml-4 p-1 rounded bg-[#FFF]"
             disabled={!member.admin}
           >
             {[1, 2, 3].map((count) => (
@@ -146,7 +146,7 @@ const Configuration = ({ member }: { member: IUser }) => {
             name="wordMode"
             value={settings.wordMode}
             onChange={handleChange}
-            className="ml-4 p-1 rounded bg-theme-yellow"
+            className="ml-4 p-1 rounded bg-[#FFF]"
             disabled={!member.admin}
           >
             {["normal", "hidden", "both"].map((mode) => (
